@@ -8,10 +8,7 @@
 //         {/* Title or Heading
 //         <h2 className="text-xl font-semibold mb-4">Find Us Here</h2> */}
         
-//         {/* Google Map in the Footer */}
-//         <div className="flex justify-center mb-4">
-//           <Map /> {/* Display Map here */}
-//         </div>
+
 
 //         {/* Additional Footer Content */}
 //         <div className="mt-4 text-sm">

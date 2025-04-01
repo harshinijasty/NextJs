@@ -30,6 +30,5 @@ const Avatar = ({user} :{user:UserData}) => {
       </>
     )
     
-
 }
 export default Avatar;
