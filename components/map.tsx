@@ -19,7 +19,7 @@ const Map = () => {
   }
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: apiKey,
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
     libraries: ["places"], // Required for Autocomplete
   });
 
@@ -51,7 +51,7 @@ const Map = () => {
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <AutocompleteInput onPlaceSelected={setMapCenter} />
+        {/* <AutocompleteInput onPlaceSelected={setMapCenter} /> */}
         <button
           className="p-2 bg-blue-500 text-white rounded-md"
           onClick={handleCurrentLocation}
