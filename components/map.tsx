@@ -1,72 +1,83 @@
 "use client";
-import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  Marker,
+  useLoadScript,
+  DrawingManager,
+} from "@react-google-maps/api";
 import { useState } from "react";
-import AutocompleteInput from "./autocomplete";
+import { useMap } from "./mapcontext";
+
+// ✅ Declare props interface
+interface MapProps {
+  polygonFillColor: string;
+}
 
 const containerStyle = {
   width: "100%",
-  height: "350px",
+  height: "400px",
 };
 
-const defaultCenter = { lat: 32.7767, lng: -96.7970 };
+// ✅ Use props in function signature
+const Map = ({ polygonFillColor }: MapProps) => {
+  const { mapCenter } = useMap();
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
-const Map = () => {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-  if (!apiKey) {
-    console.error("Google Maps API key is missing!");
-    return <p>Error: Google Maps API key is missing!</p>;
-  }
-
-  const { isLoaded, loadError } = useLoadScript({
+  const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-    libraries: ["places"], // Required for Autocomplete
+    libraries: ["places", "drawing"],
   });
 
-  const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const handlePolygonComplete = (polygon: google.maps.Polygon) => {
+    const path = polygon.getPath();
+    const coordinates: google.maps.LatLngLiteral[] = [];
 
-  const handleCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const location = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setMapCenter(location);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          alert("Unable to retrieve your location.");
-        }
-      );
-    } else {
-      alert("Geolocation is not supported by your browser.");
+    for (let i = 0; i < path.getLength(); i++) {
+      const point = path.getAt(i);
+      coordinates.push({ lat: point.lat(), lng: point.lng() });
     }
+
+    console.log("Polygon coordinates:", coordinates);
   };
 
-  if (loadError) return <p>Error loading map: {loadError.message}</p>;
   if (!isLoaded) return <p>Loading map...</p>;
 
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-2">
-        {/* <AutocompleteInput onPlaceSelected={setMapCenter} /> */}
-        <button
-          className="p-2 bg-blue-500 text-white rounded-md"
-          onClick={handleCurrentLocation}
-        >
-          📍 My Location
-        </button>
-      </div>
-      <GoogleMap mapContainerStyle={containerStyle} center={mapCenter} zoom={12}>
-        <Marker position={mapCenter} />
-      </GoogleMap>
-    </div>
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={mapCenter}
+      zoom={10}
+      onLoad={(map) => setMap(map)}
+      onUnmount={() => setMap(null)}
+    >
+      <Marker position={mapCenter} />
+
+      <DrawingManager
+        onPolygonComplete={handlePolygonComplete}
+        options={{
+          drawingControl: true,
+          drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_CENTER,
+            drawingModes: [google.maps.drawing.OverlayType.POLYGON],
+          },
+          polygonOptions: {
+            fillColor: polygonFillColor,
+            fillOpacity: 0.5,
+            strokeColor: "#000",
+            strokeWeight: 2,
+            editable: true,
+            zIndex: 1,
+          },
+        }}
+      />
+    </GoogleMap>
   );
 };
 
 export default Map;
+
+
+
 
 
 
